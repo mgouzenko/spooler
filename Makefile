@@ -1,6 +1,6 @@
 CC=clang++
 SRCEXT=cpp
-SRCS=$(shell find . -type f -name *.$(SRCEXT))
+SRCS=$(shell find . -type f -name '*.$(SRCEXT)')
 OBJS=$(subst .$(SRCEXT),.o,$(SRCS))
 CFLAGS := -g -Wall -std=c++11
 
