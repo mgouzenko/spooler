@@ -8,8 +8,8 @@
 static auto ADD = "addqueue";
 static auto RM = "rmqueue";
 static auto LS = "showqueue";
-static auto SPOOL_DIR = "/var/spool/printer/";
-static auto SPOOL_INFO = "/var/spool/printer/spool_info.txt";
+static auto SPOOL_DIR = "./";
+static auto SPOOL_INFO = "./spool_info.txt";
 
 class spool_controller{
 	std::string spool_dir;

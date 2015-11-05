@@ -78,12 +78,11 @@ std::string spool_info::file::to_string(bool pretty){
 }
 
 std::string spool_info::add_file(std::string filename, uid_t uid){
-	int id;
+	int id = ++num_files;
 	if(!free_ids.empty()){
 		id = free_ids.back();
 		free_ids.pop_back();
 	}
-	else id = num_files++;
 	auto unique_filename = filename + std::to_string(id);
 	files.push_back(spool_info::file(unique_filename, std::to_string(id), uid));
 	return unique_filename;
