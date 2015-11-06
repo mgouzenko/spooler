@@ -45,7 +45,7 @@ class spool_info{
 	spool_info(std::string spool_info_file);
 	~spool_info();
 	std::string add_file(std::string filename, uid_t uid);
-	bool rm_file(std::string id, uid_t uid);
+	std::string rm_file(std::string id, uid_t uid);
 	std::string ls_files();
 };
 
