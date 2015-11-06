@@ -56,20 +56,17 @@ void spool_controller::add_files(std::vector<std::string> files) {
 	perror(("Error for file \"" + fname + "\"").c_str());
 	continue;
     }
-    std::stringstream contents;
-    contents << file.rdbuf();
-    file.close();
 
     seteuid(euid);
 	// Get the destination file name from the spool_info object
     auto destination_filename = info.add_file(fname, current_uid);
     std::ofstream outfile(SPOOL_DIR + "/" + destination_filename);
+    seteuid(current_uid);
 
 	// Do the transfer
-    outfile << contents;
+    outfile << file.rdbuf();
     outfile.close();
-
-    seteuid(current_uid);
+    file.close();
   }
 }
 
