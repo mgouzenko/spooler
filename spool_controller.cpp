@@ -1,23 +1,33 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <errno.h>
 #include <fstream>
+#include <sstream>
 #include <sys/stat.h>
-#include <stdio.h>
+#include <cstdio>
+#include <unistd.h>
 #include "spool_controller.hpp"
 
-spool_controller::spool_controller(uid_t uid)
+spool_controller::spool_controller()
     : info(SPOOL_DIR + "/" + SPOOL_INFO) {
-  current_uid = uid;
+  current_uid = getuid();
+  euid = geteuid();
 
   // Check if the spool directory exists
   std::ifstream spool_dir(SPOOL_DIR);
 
   // If not, create it
-  if (!spool_dir)
-    mkdir(SPOOL_DIR.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
+  if (!spool_dir){
+	if(errno == ENOENT) mkdir(SPOOL_DIR.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
+	else{
+		perror("Error");	
+		exit(1);
+	}
+}
   else
     spool_dir.close();
+  seteuid(current_uid);
 
   // Check permissions
   struct stat statbuf;
@@ -42,17 +52,24 @@ spool_controller::spool_controller(uid_t uid)
 void spool_controller::add_files(std::vector<std::string> files) {
   for (auto fname : files) {
     std::ifstream file(fname);
-    if (!file)
-      continue;
+    if (!file){
+	perror(("Error for file \"" + fname + "\"").c_str());
+	continue;
+    }
+    std::stringstream contents;
+    contents << file.rdbuf();
+    file.close();
 
+    seteuid(euid);
 	// Get the destination file name from the spool_info object
     auto destination_filename = info.add_file(fname, current_uid);
     std::ofstream outfile(SPOOL_DIR + "/" + destination_filename);
 
 	// Do the transfer
-    outfile << file.rdbuf();
+    outfile << contents;
     outfile.close();
-    file.close();
+
+    seteuid(current_uid);
   }
 }
 
@@ -62,9 +79,18 @@ void spool_controller::rm_files(std::vector<std::string> ids) {
     auto fname = info.rm_file(id, current_uid);
 
 	// If such a file exists, remove it from the spool directory.
-    if (!fname.empty())
+    if (!fname.empty()){
+      seteuid(euid);
       remove((SPOOL_DIR + "/" + fname).c_str());
+      seteuid(current_uid);
+    } else {
+      std::cout << "Could not delete: " <<  id << std::endl;
+    }
   }
 }
 
-void spool_controller::ls_files() { std::cout << info.ls_files(); }
+void spool_controller::ls_files() {
+  seteuid(euid);
+  std::cout << info.ls_files();
+  seteuid(current_uid);
+}

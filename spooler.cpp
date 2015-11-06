@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
   // collect them into a vector.
   std::vector<std::string> files(argv + 2, argv + argc);
 
-  auto print_spooler = spool_controller(getuid());
+  uid_t euid = geteuid();
+  auto print_spooler = spool_controller();
 
   if (cmd == ADD)
     print_spooler.add_files(files);
@@ -31,5 +32,7 @@ int main(int argc, char **argv) {
     print_spooler.ls_files();
   else
     print_usage();
+
+  seteuid(euid);
   return 0;
 }

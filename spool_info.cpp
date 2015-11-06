@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <sys/stat.h>
+#include <unistd.h>
 
 spool_info::file::file(std::string filename, uid_t uid) {
   name = filename;
@@ -52,8 +53,18 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
   // Make a unique filename based on its id. Appending the id is fine.
   // That's because since ids are unique, two file names will never
   // end in the same character.
-  auto unique_filename = filename + std::to_string(id);
-  files.emplace(std::to_string(id), spool_info::file(unique_filename, uid));
+
+  if(filename == "/" || filename.empty()){
+	std::cout << "Bad filename: " << filename << std::endl;
+	exit(1);
+  }
+  else if(filename.back() == '/') filename.erase(filename.end()-1);
+
+  auto idx = filename.find_last_of('/');
+  if(idx == std::string::npos) idx = 0;
+  else idx++;
+  auto unique_filename = filename.substr(idx) + std::to_string(id);
+  files.insert(std::make_pair(std::to_string(id), spool_info::file(unique_filename, uid)));
   return unique_filename;
 }
 
@@ -107,11 +118,14 @@ spool_info::spool_info(std::string spool_info_file) {
       std::getline(line_stream, owner, '\t');
       uid_t uid = std::stoull(owner);
 
-      files.emplace(identifier, spool_info::file(name, uid));
+      files.insert(std::make_pair(identifier, spool_info::file(name, uid)));
     }
-  } else {
+  } else if(errno == ENOENT){
     num_files = 0;
-  }
+  } else {
+	perror("Error");
+	exit(1);
+}
 }
 
 spool_info::~spool_info() {

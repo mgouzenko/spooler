@@ -1,10 +1,10 @@
-CC=clang++
+CC=g++
 SRCEXT=cpp
 SRCS=$(shell find . -type f -name '*.$(SRCEXT)')
 OBJS=$(subst .$(SRCEXT),.o,$(SRCS))
-CFLAGS := -g -Wall -std=c++11
+CFLAGS := -g -Wall -std=c++0x
 
-build:	spooler
+build:	spooler setuid
 
 # "spooler" requires a set of object files
 # $? is the
@@ -29,3 +29,6 @@ exec: build
 
 clean:
 	rm -f spooler *.core *.o
+
+setuid:
+	chmod u+s spooler
