@@ -24,18 +24,18 @@ spool_controller::spool_controller(uid_t uid)
   if (stat(SPOOL_DIR.c_str(), &statbuf) == -1) {
     std::cout << "Error getting permissions for the spool directory\n";
     exit(1);
-  } else if((statbuf.st_mode & S_IFDIR) == 0) {
+  } else if ((statbuf.st_mode & S_IFDIR) == 0) {
     std::cout << "Spool directory is actually a file.";
     exit(1);
-  } else if((statbuf.st_mode & S_IRUSR) == 0) {
+  } else if ((statbuf.st_mode & S_IRUSR) == 0) {
     std::cout << "Spool directory is not readable.";
     exit(1);
-  } else if((statbuf.st_mode & S_IWUSR) == 0) {
+  } else if ((statbuf.st_mode & S_IWUSR) == 0) {
     std::cout << "Spool directory is not writable.";
     exit(1);
-  } else if((statbuf.st_mode & S_IRWXO & S_IRWXG) != 0){
-	std::cout << "Spool directory has incorrect permissions";
-	exit(1);
+  } else if ((statbuf.st_mode & S_IRWXO & S_IRWXG) != 0) {
+    std::cout << "Spool directory has incorrect permissions";
+    exit(1);
   }
 }
 

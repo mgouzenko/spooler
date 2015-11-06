@@ -1,23 +1,15 @@
 #include "spool_info.hpp"
+#include "spool_controller.hpp"
 #include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <sys/stat.h>
 
-spool_info::file::file(std::string filename, std::string id, uid_t uid) {
+spool_info::file::file(std::string filename, uid_t uid) {
   name = filename;
   owner = uid;
-  identifier = id;
-  time_t t = time(0);
-  struct tm *now = localtime(&t);
-
-  ts.month = now->tm_mon + 1;
-  ts.day = now->tm_mday;
-  ts.year = now->tm_year + 1900;
-  ts.hour = now->tm_hour;
-  ts.minute = now->tm_min;
-  ts.second = now->tm_sec;
 }
 
 std::string spool_info::ls_files() {
@@ -26,54 +18,23 @@ std::string spool_info::ls_files() {
       << "\t"
       << "ID"
       << "\t"
-      << "Owner"
-      << "\t"
-      << "Timestamp" << std::endl;
-  for (auto f : files)
-    out << f.to_string(true);
+      << "Owner" << std::endl;
+  for (auto f : files) {
+    auto file_path = SPOOL_DIR + "/" + f.second.name;
+    struct stat buf;
+    if (stat(file_path.c_str(), &buf) == -1) {
+      std::cout << "Stat failed\n";
+      exit(1);
+    }
+    time_t creation_secs = buf.st_ctime;
+    struct tm ts = *localtime(&creation_secs);
+
+    out << f.second.name << "\t" << f.first << "\t" << f.second.owner << "\t"
+        << ts.tm_mon + 1 << "/" << ts.tm_mday << "/" << ts.tm_year + 1900 << " "
+        << ts.tm_hour << ":" << ts.tm_min << ":" << ts.tm_sec << std::endl;
+  }
+
   return out.str();
-}
-
-spool_info::file::file(std::string spool_info_line) {
-  std::istringstream line(spool_info_line);
-  std::string next;
-
-  std::getline(line, next, '\t');
-  name = next;
-
-  std::getline(line, next, '\t');
-  identifier = next;
-
-  std::getline(line, next, '\t');
-  owner = std::stoull(next);
-
-  std::getline(line, next, '\t');
-  ts.month = std::stoi(next);
-
-  std::getline(line, next, '\t');
-  ts.day = std::stoi(next);
-
-  std::getline(line, next, '\t');
-  ts.year = std::stoi(next);
-
-  std::getline(line, next, '\t');
-  ts.hour = std::stoi(next);
-
-  std::getline(line, next, '\t');
-  ts.minute = std::stoi(next);
-
-  std::getline(line, next, '\t');
-  ts.second = std::stoi(next);
-}
-
-std::string spool_info::file::to_string(bool pretty) {
-  std::ostringstream file_string;
-  file_string << name << "\t" << identifier << "\t" << owner << "\t" << ts.month
-              << (pretty ? "/" : "\t") << ts.day << (pretty ? "/" : "\t")
-              << ts.year << (pretty ? " " : "\t") << ts.hour
-              << (pretty ? ":" : "\t") << ts.minute << (pretty ? ":" : "\t")
-              << ts.second << std::endl;
-  return file_string.str();
 }
 
 std::string spool_info::add_file(std::string filename, uid_t uid) {
@@ -83,25 +44,23 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
     free_ids.pop_back();
   }
   auto unique_filename = filename + std::to_string(id);
-  files.push_back(spool_info::file(unique_filename, std::to_string(id), uid));
+  files.emplace(std::to_string(id), spool_info::file(unique_filename, uid));
   return unique_filename;
 }
 
 std::string spool_info::rm_file(std::string id, uid_t uid) {
-  for (auto f = files.begin(); f != files.end(); ++f) {
-    if (f->identifier == id) {
-      if (f->owner == uid) {
-        auto fname = f->name;
-        files.erase(f);
-        free_ids.push_back(std::stoi(id));
-        num_files--;
-        return fname;
-      } else {
-        break;
-      }
-    }
+  auto f = files.find(id);
+  if (f == files.end())
+    return "";
+  if (f->second.owner == uid) {
+    auto fname = f->second.name;
+    files.erase(f);
+    free_ids.push_back(std::stoi(id));
+    num_files--;
+    return fname;
+  } else {
+    return "";
   }
-  return "";
 }
 
 spool_info::spool_info(std::string spool_info_file) {
@@ -123,8 +82,22 @@ spool_info::spool_info(std::string spool_info_file) {
       free_ids.push_back(std::stoi(line));
 
     // The remaining lines are file entries.
-    while (std::getline(infile, line))
-      files.push_back(spool_info::file(line));
+    std::string next;
+    while (std::getline(infile, line)) {
+      std::istringstream line_stream(line);
+
+      std::string name;
+      std::getline(line_stream, name, '\t');
+
+      std::string identifier;
+      std::getline(line_stream, identifier, '\t');
+
+      std::string owner;
+      std::getline(line_stream, owner, '\t');
+      uid_t uid = std::stoull(owner);
+
+      files.emplace(identifier, spool_info::file(name, uid));
+    }
   } else {
     num_files = 0;
   }
@@ -139,5 +112,6 @@ spool_info::~spool_info() {
   outfile << std::endl;
 
   for (auto file : files)
-    outfile << file.to_string();
+    outfile << file.second.name << "\t" << file.first << "\t"
+            << file.second.owner << std::endl;
 }
