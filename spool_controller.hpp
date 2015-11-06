@@ -5,13 +5,6 @@
 #include <vector>
 #include "spool_info.hpp"
 
-// Static globals
-static auto ADD = "addqueue";
-static auto RM = "rmqueue";
-static auto LS = "showqueue";
-static std::string SPOOL_DIR = "/home/tinyvm/spool_dir";
-static std::string SPOOL_INFO = "spool_info.txt";
-
 class spool_controller {
   /* The uid of the user who ran the spooler */
   uid_t current_uid;

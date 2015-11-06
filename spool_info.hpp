@@ -61,8 +61,10 @@ public:
    */
   std::string rm_file(std::string id, uid_t uid);
 
-  /* Lists all of the files, along with their timestamps and ids */
-  std::string ls_files();
+  /* Lists all of the files, along with their timestamps and ids
+   * Args:
+   * 	spool_dir: The spool directory where the files are located. */
+  std::string ls_files(std::string spool_dir);
 };
 
 #endif

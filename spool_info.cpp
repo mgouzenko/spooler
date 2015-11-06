@@ -3,6 +3,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <sstream>
 #include <sys/stat.h>
@@ -13,16 +14,20 @@ spool_info::file::file(std::string filename, uid_t uid) {
   owner = uid;
 }
 
-std::string spool_info::ls_files() {
+std::string spool_info::ls_files(std::string spool_dir) {
   std::ostringstream out;
   out << "Name"
       << "\t"
       << "ID"
       << "\t"
       << "Owner" << std::endl;
+
+  std::map<time_t, std::string> info_map;
+
   for (auto f : files) {
+	std::ostringstream info_line;
 	// Get the file's absolute path
-    auto file_path = SPOOL_DIR + "/" + f.second.name;
+    auto file_path = spool_dir + "/" + f.second.name;
     struct stat buf;
 
 	// Do a stat on the file to get its creation timestamp
@@ -34,11 +39,14 @@ std::string spool_info::ls_files() {
     struct tm ts = *localtime(&creation_secs);
 
 	// Output the relevant info about the file
-    out << f.second.name << "\t" << f.first << "\t" << f.second.owner << "\t"
-        << ts.tm_mon + 1 << "/" << ts.tm_mday << "/" << ts.tm_year + 1900 << " "
-        << ts.tm_hour << ":" << ts.tm_min << ":" << ts.tm_sec << std::endl;
+    info_line << f.second.name << "\t" << f.first << "\t" << f.second.owner << "\t"
+			  << ts.tm_mon + 1 << "/" << ts.tm_mday << "/" << ts.tm_year + 1900 << " "
+			  << ts.tm_hour << ":" << ts.tm_min << ":" << ts.tm_sec << std::endl;
+
+	info_map.insert(std::make_pair(creation_secs, info_line.str()));
   }
 
+  for(auto line: info_map) out << line.second;
   return out.str();
 }
 

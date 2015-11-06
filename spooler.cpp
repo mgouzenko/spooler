@@ -2,6 +2,11 @@
 #include <unistd.h>
 #include "spool_controller.hpp"
 
+// Static Globals
+static auto ADD = "addqueue";
+static auto RM = "rmqueue";
+static auto LS = "showqueue";
+
 void print_usage() {
   std::cout << "Usage: spooler CMD\n"
             << "CMD:\n"

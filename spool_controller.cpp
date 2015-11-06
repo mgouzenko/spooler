@@ -9,6 +9,10 @@
 #include <unistd.h>
 #include "spool_controller.hpp"
 
+// Static globals
+static std::string SPOOL_DIR = "/home/tinyvm/spool_dir";
+static std::string SPOOL_INFO = "spool_info.txt";
+
 spool_controller::spool_controller()
     : info(SPOOL_DIR + "/" + SPOOL_INFO) {
   current_uid = getuid();
@@ -88,6 +92,6 @@ void spool_controller::rm_files(std::vector<std::string> ids) {
 
 void spool_controller::ls_files() {
   seteuid(euid);
-  std::cout << info.ls_files();
+  std::cout << info.ls_files(SPOOL_DIR);
   seteuid(current_uid);
 }
