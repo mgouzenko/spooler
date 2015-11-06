@@ -44,8 +44,12 @@ void spool_controller::add_files(std::vector<std::string> files) {
     std::ifstream file(fname);
     if (!file)
       continue;
+
+	// Get the destination file name from the spool_info object
     auto destination_filename = info.add_file(fname, current_uid);
     std::ofstream outfile(SPOOL_DIR + "/" + destination_filename);
+
+	// Do the transfer
     outfile << file.rdbuf();
     outfile.close();
     file.close();
@@ -54,7 +58,10 @@ void spool_controller::add_files(std::vector<std::string> files) {
 
 void spool_controller::rm_files(std::vector<std::string> ids) {
   for (auto id : ids) {
+	// Remove the file associated with the id from the spool info, and get its name
     auto fname = info.rm_file(id, current_uid);
+
+	// If such a file exists, remove it from the spool directory.
     if (!fname.empty())
       remove((SPOOL_DIR + "/" + fname).c_str());
   }

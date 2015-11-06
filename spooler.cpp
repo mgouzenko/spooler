@@ -16,9 +16,13 @@ int main(int argc, char **argv) {
     return 1;
   }
   std::string cmd = argv[1];
+
+  // If there are files specified as part of the command
+  // collect them into a vector.
   std::vector<std::string> files(argv + 2, argv + argc);
 
   auto print_spooler = spool_controller(getuid());
+
   if (cmd == ADD)
     print_spooler.add_files(files);
   else if (cmd == RM)

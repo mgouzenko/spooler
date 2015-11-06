@@ -20,8 +20,11 @@ std::string spool_info::ls_files() {
       << "\t"
       << "Owner" << std::endl;
   for (auto f : files) {
+	// Get the file's absolute path
     auto file_path = SPOOL_DIR + "/" + f.second.name;
     struct stat buf;
+
+	// Do a stat on the file to get its creation timestamp
     if (stat(file_path.c_str(), &buf) == -1) {
       std::cout << "Stat failed\n";
       exit(1);
@@ -29,6 +32,7 @@ std::string spool_info::ls_files() {
     time_t creation_secs = buf.st_ctime;
     struct tm ts = *localtime(&creation_secs);
 
+	// Output the relevant info about the file
     out << f.second.name << "\t" << f.first << "\t" << f.second.owner << "\t"
         << ts.tm_mon + 1 << "/" << ts.tm_mday << "/" << ts.tm_year + 1900 << " "
         << ts.tm_hour << ":" << ts.tm_min << ":" << ts.tm_sec << std::endl;
@@ -40,9 +44,14 @@ std::string spool_info::ls_files() {
 std::string spool_info::add_file(std::string filename, uid_t uid) {
   int id = ++num_files;
   if (!free_ids.empty()) {
+	// If there's an id in the pool of free ids, use it.
     id = free_ids.back();
     free_ids.pop_back();
   }
+
+  // Make a unique filename based on its id. Appending the id is fine.
+  // That's because since ids are unique, two file names will never
+  // end in the same character.
   auto unique_filename = filename + std::to_string(id);
   files.emplace(std::to_string(id), spool_info::file(unique_filename, uid));
   return unique_filename;
@@ -52,6 +61,8 @@ std::string spool_info::rm_file(std::string id, uid_t uid) {
   auto f = files.find(id);
   if (f == files.end())
     return "";
+
+  // If the file exists and the uid matches, get rid of it and return its name
   if (f->second.owner == uid) {
     auto fname = f->second.name;
     files.erase(f);
@@ -104,9 +115,14 @@ spool_info::spool_info(std::string spool_info_file) {
 }
 
 spool_info::~spool_info() {
+  // When the spool_info object is destroyed, write its contents to
+  // the spool info file
   std::ofstream outfile(info_file);
+
+  // Output the number of files as the first line
   outfile << std::to_string(num_files) << std::endl;
 
+  // Output the free ids as the second line
   for (auto id : free_ids)
     outfile << id << "\t";
   outfile << std::endl;
