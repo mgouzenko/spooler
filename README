@@ -4,8 +4,29 @@ Homework 2 - Spooler
 
 Compilation
 ********************************************************************************
-To compile, run make. This produces an executable called "spooler". The makefile
-sets the suid bit on spooler, so be careful!
+To compile, run make. This produces an executable called "spooler". The commands
+addqueue, showqueue, and rmqueue are implemented as subcommands (since I didn't
+know that we had to implement these things as separate commands). However, I've
+set up shell scripts called addqueue, showqueue, and rmqueue. These shell
+scripts invoke spooler with the appropriate command line args.
+
+Installation
+********************************************************************************
+To install the appropriate commands to /usr/bin, run make install. Make install
+actually does the following configurations:
+
+	- Creates a user called "spooler", deleting any old user if necessary.
+	- Creates a directory called /var/spool/printer, overwriting any
+	  directory if it exists. This newly created directory will be the
+	  spool directory, so its permissions are set to 700.
+	- Transfers ownership of /var/spool/printer to "spooler".
+	- Changes permissions on addqueue, rmqueue, showqueue and spooler to
+	  755.
+	- Transfers ownership of the spooler executable to "spooler". This is
+	  necessary for the next part (setting the suid bit).
+	- Sets the suid bit on the spooler executable, so that any user who
+	  runs this executable will run with the privileges of "spooler".
+	- Copies addqueue, showqueue, rmqueue, and spooler to /usr/bin.
 
 Usage
 ********************************************************************************

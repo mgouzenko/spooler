@@ -4,7 +4,7 @@ SRCS=$(shell find . -type f -name '*.$(SRCEXT)')
 OBJS=$(subst .$(SRCEXT),.o,$(SRCS))
 CFLAGS := -g -Wall -std=c++0x
 
-build:	spooler setuid
+build:	spooler
 
 # "spooler" requires a set of object files
 # $? is the
@@ -30,5 +30,16 @@ exec: build
 clean:
 	rm -f spooler *.core *.o
 
-setuid:
-	chmod u+s spooler
+install: spooler
+	sudo userdel spooler
+	sudo useradd spooler
+	sudo rm -rf /var/spool/printer
+	sudo mkdir -m 700 /var/spool/printer
+	sudo chown spooler /var/spool/printer
+	chmod 755 ./addqueue
+	chmod 755 ./showqueue
+	chmod 755 ./rmqueue
+	chmod 755 ./spooler
+	sudo chown spooler ./spooler
+	sudo -u spooler chmod u+s ./spooler
+	sudo cp -p addqueue showqueue rmqueue spooler /usr/bin/

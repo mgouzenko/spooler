@@ -10,7 +10,7 @@
 #include "spool_controller.hpp"
 
 // Static globals
-static std::string SPOOL_DIR = "/home/tinyvm/spool_dir";
+static std::string SPOOL_DIR = "/var/spool/printer";
 static std::string SPOOL_INFO = "spool_info.txt";
 
 spool_controller::spool_controller() : info(SPOOL_DIR + "/" + SPOOL_INFO) {
