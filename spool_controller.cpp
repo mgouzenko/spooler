@@ -13,8 +13,7 @@
 static std::string SPOOL_DIR = "/home/tinyvm/spool_dir";
 static std::string SPOOL_INFO = "spool_info.txt";
 
-spool_controller::spool_controller()
-    : info(SPOOL_DIR + "/" + SPOOL_INFO) {
+spool_controller::spool_controller() : info(SPOOL_DIR + "/" + SPOOL_INFO) {
   current_uid = getuid();
   euid = geteuid();
 
@@ -22,14 +21,14 @@ spool_controller::spool_controller()
   std::ifstream spool_dir(SPOOL_DIR);
 
   // If not, create it
-  if (!spool_dir){
-	if(errno == ENOENT) mkdir(SPOOL_DIR.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
-	else{
-		perror("Error");	
-		exit(1);
-	}
-}
-  else
+  if (!spool_dir) {
+    if (errno == ENOENT)
+      mkdir(SPOOL_DIR.c_str(), S_IRUSR | S_IWUSR | S_IXUSR);
+    else {
+      perror("Error");
+      exit(1);
+    }
+  } else
     spool_dir.close();
   seteuid(current_uid);
 
@@ -56,18 +55,18 @@ spool_controller::spool_controller()
 void spool_controller::add_files(std::vector<std::string> files) {
   for (auto fname : files) {
     std::ifstream file(fname);
-    if (!file){
-	perror(("Error for file \"" + fname + "\"").c_str());
-	continue;
+    if (!file) {
+      perror(("Error for file \"" + fname + "\"").c_str());
+      continue;
     }
 
     seteuid(euid);
-	// Get the destination file name from the spool_info object
+    // Get the destination file name from the spool_info object
     auto destination_filename = info.add_file(fname, current_uid);
     std::ofstream outfile(SPOOL_DIR + "/" + destination_filename);
     seteuid(current_uid);
 
-	// Do the transfer
+    // Do the transfer
     outfile << file.rdbuf();
     outfile.close();
     file.close();
@@ -76,21 +75,24 @@ void spool_controller::add_files(std::vector<std::string> files) {
 
 void spool_controller::rm_files(std::vector<std::string> ids) {
   for (auto id : ids) {
-	// Remove the file associated with the id from the spool info, and get its name
+    // Remove the file associated with the id from the spool info, and get its
+    // name
     auto fname = info.rm_file(id, current_uid);
 
-	// If such a file exists, remove it from the spool directory.
-    if (!fname.empty()){
+    // If such a file exists, remove it from the spool directory.
+    if (!fname.empty()) {
       seteuid(euid);
       remove((SPOOL_DIR + "/" + fname).c_str());
       seteuid(current_uid);
     } else {
-      std::cout << "Could not delete: " <<  id << std::endl;
+      std::cout << "Could not delete: " << id << std::endl;
     }
   }
 }
 
 void spool_controller::ls_files() {
+  // Listing files requires privilege,
+  // since we need to take a stat on spooled files.
   seteuid(euid);
   std::cout << info.ls_files(SPOOL_DIR);
   seteuid(current_uid);

@@ -16,7 +16,7 @@ private:
     /* The owner (the userid who made the request) */
     uid_t owner;
 
-	/* Constructor */
+    /* Constructor */
     file(std::string filename, uid_t uid);
   };
 

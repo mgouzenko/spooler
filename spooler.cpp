@@ -38,6 +38,8 @@ int main(int argc, char **argv) {
   else
     print_usage();
 
+  // We restore the euid because spool_info's destructor needs it so that it
+  // can write the info file back into its place within the spool directory.
   seteuid(euid);
   return 0;
 }

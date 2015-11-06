@@ -25,12 +25,12 @@ std::string spool_info::ls_files(std::string spool_dir) {
   std::multimap<time_t, std::string> info_map;
 
   for (auto f : files) {
-	std::ostringstream info_line;
-	// Get the file's absolute path
+    std::ostringstream info_line;
+    // Get the file's absolute path
     auto file_path = spool_dir + "/" + f.second.name;
     struct stat buf;
 
-	// Do a stat on the file to get its creation timestamp
+    // Do a stat on the file to get its creation timestamp
     if (stat(file_path.c_str(), &buf) == -1) {
       std::cout << "Stat failed\n";
       exit(1);
@@ -38,22 +38,24 @@ std::string spool_info::ls_files(std::string spool_dir) {
     time_t creation_secs = buf.st_ctime;
     struct tm ts = *localtime(&creation_secs);
 
-	// Output the relevant info about the file
-    info_line << f.second.name << "\t" << f.first << "\t" << f.second.owner << "\t"
-			  << ts.tm_mon + 1 << "/" << ts.tm_mday << "/" << ts.tm_year + 1900 << " "
-			  << ts.tm_hour << ":" << ts.tm_min << ":" << ts.tm_sec << std::endl;
+    // Output the relevant info about the file
+    info_line << f.second.name << "\t" << f.first << "\t" << f.second.owner
+              << "\t" << ts.tm_mon + 1 << "/" << ts.tm_mday << "/"
+              << ts.tm_year + 1900 << " " << ts.tm_hour << ":" << ts.tm_min
+              << ":" << ts.tm_sec << std::endl;
 
-	info_map.insert(std::make_pair(creation_secs, info_line.str()));
+    info_map.insert(std::make_pair(creation_secs, info_line.str()));
   }
 
-  for(auto line: info_map) out << line.second;
+  for (auto line : info_map)
+    out << line.second;
   return out.str();
 }
 
 std::string spool_info::add_file(std::string filename, uid_t uid) {
   int id = ++num_files;
   if (!free_ids.empty()) {
-	// If there's an id in the pool of free ids, use it.
+    // If there's an id in the pool of free ids, use it.
     id = free_ids.back();
     free_ids.pop_back();
   }
@@ -62,17 +64,20 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
   // That's because since ids are unique, two file names will never
   // end in the same character.
 
-  if(filename == "/" || filename.empty()){
-	std::cout << "Bad filename: " << filename << std::endl;
-	exit(1);
-  }
-  else if(filename.back() == '/') filename.erase(filename.end()-1);
+  if (filename == "/" || filename.empty()) {
+    std::cout << "Bad filename: " << filename << std::endl;
+    exit(1);
+  } else if (filename.back() == '/')
+    filename.erase(filename.end() - 1);
 
   auto idx = filename.find_last_of('/');
-  if(idx == std::string::npos) idx = 0;
-  else idx++;
-  auto unique_filename = filename.substr(idx) + std::to_string(id);
-  files.insert(std::make_pair(std::to_string(id), spool_info::file(unique_filename, uid)));
+  if (idx == std::string::npos)
+    idx = 0;
+  else
+    idx++;
+  auto unique_filename = filename.substr(idx) + "_" + std::to_string(id);
+  files.insert(std::make_pair(std::to_string(id),
+                              spool_info::file(unique_filename, uid)));
   return unique_filename;
 }
 
@@ -128,12 +133,12 @@ spool_info::spool_info(std::string spool_info_file) {
 
       files.insert(std::make_pair(identifier, spool_info::file(name, uid)));
     }
-  } else if(errno == ENOENT){
+  } else if (errno == ENOENT) {
     num_files = 0;
   } else {
-	perror("Error");
-	exit(1);
-}
+    perror("Error");
+    exit(1);
+  }
 }
 
 spool_info::~spool_info() {
