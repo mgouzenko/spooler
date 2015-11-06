@@ -22,7 +22,7 @@ std::string spool_info::ls_files(std::string spool_dir) {
       << "\t"
       << "Owner" << std::endl;
 
-  std::map<time_t, std::string> info_map;
+  std::multimap<time_t, std::string> info_map;
 
   for (auto f : files) {
 	std::ostringstream info_line;
