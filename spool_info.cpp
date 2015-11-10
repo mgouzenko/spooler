@@ -34,10 +34,10 @@ std::string spool_info::ls_files(std::string spool_dir) {
     struct tm ts = *localtime(&creation_secs);
 
     // Output the relevant info about the file
-    info_line << f.second.name << "\t" << f.second.owner
-              << "\t" << ts.tm_mon + 1 << "/" << ts.tm_mday << "/"
-              << ts.tm_year + 1900 << " " << ts.tm_hour << ":" << ts.tm_min
-              << ":" << ts.tm_sec << "\t" << f.first << std::endl;
+    info_line << f.second.name << " " << f.second.owner << " "
+              << ts.tm_year + 1900 << "-" << ts.tm_mon + 1 << "-" << ts.tm_mday
+              << "_" << ts.tm_hour << ":" << ts.tm_min
+              << " " << f.first << std::endl;
 
     info_map.insert(std::make_pair(creation_secs, info_line.str()));
   }
@@ -47,7 +47,8 @@ std::string spool_info::ls_files(std::string spool_dir) {
   return out.str();
 }
 
-std::string spool_info::add_file(std::string filename, uid_t uid) {
+std::pair<std::string, std::string>
+spool_info::add_file(std::string filename, uid_t uid) {
   int id = ++num_files;
   if (!free_ids.empty()) {
     // If there's an id in the pool of free ids, use it.
@@ -60,8 +61,8 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
   // end in the same character.
 
   if (filename == "/" || filename.empty()) {
-    std::cout << filename << ": Bad filename" << std::endl;
-    exit(1);
+    std::cout << filename << ": X Bad filename" << std::endl;
+    return std::make_pair("", "");
   } else if (filename.back() == '/')
     filename.erase(filename.end() - 1);
 
@@ -73,13 +74,13 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
   auto unique_filename = filename.substr(idx) + "_" + std::to_string(id);
   files.insert(std::make_pair(std::to_string(id),
                               spool_info::file(unique_filename, uid)));
-  return unique_filename;
+  return std::make_pair(std::to_string(id), unique_filename);
 }
 
 std::string spool_info::rm_file(std::string id, uid_t uid) {
   auto f = files.find(id);
   if (f == files.end()){
-	errno = ENOENT;
+    errno = ENOENT;
     return "";
   }
 
@@ -91,7 +92,7 @@ std::string spool_info::rm_file(std::string id, uid_t uid) {
     num_files--;
     return fname;
   } else {
-	errno = EPERM;
+    errno = EACCES;
     return "";
   }
 }

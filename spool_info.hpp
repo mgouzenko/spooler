@@ -50,7 +50,7 @@ public:
    * Returns: The new name of the file. This is the name of
    * 	the file inside the spool directory.
    */
-  std::string add_file(std::string filename, uid_t uid);
+  std::pair<std::string, std::string> add_file(std::string filename, uid_t uid);
 
   /* Removes a file
    * Args:

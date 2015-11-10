@@ -56,13 +56,16 @@ void spool_controller::add_files(std::vector<std::string> files) {
   for (auto fname : files) {
     std::ifstream file(fname);
     if (!file) {
-      perror(fname.c_str());
+      if(errno == EACCES) std::cout << fname << ": X Permission denied\n";
+      else if(errno == ENOENT) std::cout << fname << ": X File not found\n";
       continue;
     }
 
     seteuid(euid);
     // Get the destination file name from the spool_info object
-    auto destination_filename = info.add_file(fname, current_uid);
+    auto result = info.add_file(fname, current_uid);
+    auto destination_filename = result.second;
+    auto id = result.first;
     std::ofstream outfile(SPOOL_DIR + "/" + destination_filename);
     seteuid(current_uid);
 
@@ -70,6 +73,7 @@ void spool_controller::add_files(std::vector<std::string> files) {
     outfile << file.rdbuf();
     outfile.close();
     file.close();
+    std::cout << fname << ": Y " << id << std::endl;
   }
 }
 
@@ -84,8 +88,10 @@ void spool_controller::rm_files(std::vector<std::string> ids) {
       seteuid(euid);
       remove((SPOOL_DIR + "/" + fname).c_str());
       seteuid(current_uid);
+      std::cout << id << ": Y\n";
     } else {
-      perror(id.c_str());
+      if(errno == EACCES) std::cout << id << ": X Permission denied\n";
+      else if(errno == ENOENT) std::cout << id << ": X File not found\n";
     }
   }
 }
