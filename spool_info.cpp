@@ -16,11 +16,6 @@ spool_info::file::file(std::string filename, uid_t uid) {
 
 std::string spool_info::ls_files(std::string spool_dir) {
   std::ostringstream out;
-  out << "Name"
-      << "\t"
-      << "ID"
-      << "\t"
-      << "Owner" << std::endl;
 
   std::multimap<time_t, std::string> info_map;
 
@@ -39,10 +34,10 @@ std::string spool_info::ls_files(std::string spool_dir) {
     struct tm ts = *localtime(&creation_secs);
 
     // Output the relevant info about the file
-    info_line << f.second.name << "\t" << f.first << "\t" << f.second.owner
+    info_line << f.second.name << "\t" << f.second.owner
               << "\t" << ts.tm_mon + 1 << "/" << ts.tm_mday << "/"
               << ts.tm_year + 1900 << " " << ts.tm_hour << ":" << ts.tm_min
-              << ":" << ts.tm_sec << std::endl;
+              << ":" << ts.tm_sec << "\t" << f.first << std::endl;
 
     info_map.insert(std::make_pair(creation_secs, info_line.str()));
   }
@@ -65,7 +60,7 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
   // end in the same character.
 
   if (filename == "/" || filename.empty()) {
-    std::cout << "Bad filename: " << filename << std::endl;
+    std::cout << filename << ": Bad filename" << std::endl;
     exit(1);
   } else if (filename.back() == '/')
     filename.erase(filename.end() - 1);
@@ -83,8 +78,10 @@ std::string spool_info::add_file(std::string filename, uid_t uid) {
 
 std::string spool_info::rm_file(std::string id, uid_t uid) {
   auto f = files.find(id);
-  if (f == files.end())
+  if (f == files.end()){
+	errno = ENOENT;
     return "";
+  }
 
   // If the file exists and the uid matches, get rid of it and return its name
   if (f->second.owner == uid) {
@@ -94,6 +91,7 @@ std::string spool_info::rm_file(std::string id, uid_t uid) {
     num_files--;
     return fname;
   } else {
+	errno = EPERM;
     return "";
   }
 }

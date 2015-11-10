@@ -56,7 +56,7 @@ void spool_controller::add_files(std::vector<std::string> files) {
   for (auto fname : files) {
     std::ifstream file(fname);
     if (!file) {
-      perror(("Error for file \"" + fname + "\"").c_str());
+      perror(fname.c_str());
       continue;
     }
 
@@ -85,7 +85,7 @@ void spool_controller::rm_files(std::vector<std::string> ids) {
       remove((SPOOL_DIR + "/" + fname).c_str());
       seteuid(current_uid);
     } else {
-      std::cout << "Could not delete: " << id << std::endl;
+      perror(id.c_str());
     }
   }
 }
