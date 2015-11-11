@@ -88,3 +88,10 @@ things:
 
 The first file was originally called "foo", and has id 11. The second file was
 originally called "foo1" and has id 1.
+
+Testing
+********************************************************************************
+The tests are shell scripts that run some combination of addqueue, rmqueue,
+and showqueue. The tests are evaluated based on the expected output of the
+shell scripts. Each test is run, and the result is diff'ed against this
+expected output.
