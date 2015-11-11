@@ -56,8 +56,10 @@ void spool_controller::add_files(std::vector<std::string> files) {
   for (auto fname : files) {
     std::ifstream file(fname);
     if (!file) {
-      if(errno == EACCES) std::cout << fname << ": X Permission denied\n";
-      else if(errno == ENOENT) std::cout << fname << ": X File not found\n";
+      if (errno == EACCES)
+        std::cout << fname << ": X Permission denied\n";
+      else if (errno == ENOENT)
+        std::cout << fname << ": X File not found\n";
       continue;
     }
 
@@ -90,8 +92,10 @@ void spool_controller::rm_files(std::vector<std::string> ids) {
       seteuid(current_uid);
       std::cout << id << ": Y\n";
     } else {
-      if(errno == EACCES) std::cout << id << ": X Permission denied\n";
-      else if(errno == ENOENT) std::cout << id << ": X File not found\n";
+      if (errno == EACCES)
+        std::cout << id << ": X Permission denied\n";
+      else if (errno == ENOENT)
+        std::cout << id << ": X File not found\n";
     }
   }
 }

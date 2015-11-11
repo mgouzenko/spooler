@@ -47,8 +47,8 @@ std::string spool_info::ls_files(std::string spool_dir) {
   return out.str();
 }
 
-std::pair<std::string, std::string>
-spool_info::add_file(std::string filename, uid_t uid) {
+std::pair<std::string, std::string> spool_info::add_file(std::string filename,
+                                                         uid_t uid) {
   int id = ++num_files;
   if (!free_ids.empty()) {
     // If there's an id in the pool of free ids, use it.
@@ -79,7 +79,7 @@ spool_info::add_file(std::string filename, uid_t uid) {
 
 std::string spool_info::rm_file(std::string id, uid_t uid) {
   auto f = files.find(id);
-  if (f == files.end()){
+  if (f == files.end()) {
     errno = ENOENT;
     return "";
   }
