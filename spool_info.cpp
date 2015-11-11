@@ -36,7 +36,7 @@ std::string spool_info::ls_files(std::string spool_dir) {
     // Output the relevant info about the file
     info_line << f.second.name << " " << f.second.owner << " "
               << ts.tm_year + 1900 << "-" << ts.tm_mon + 1 << "-" << ts.tm_mday
-              << "_" << ts.tm_hour << ":" << ts.tm_min
+              << "_" << ts.tm_hour << ":" << ts.tm_min << ":" << ts.tm_sec
               << " " << f.first << std::endl;
 
     info_map.insert(std::make_pair(creation_secs, info_line.str()));
