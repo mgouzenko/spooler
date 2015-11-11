@@ -1,0 +1,4 @@
+tests/test_dir/cat: Y 1
+tests/test_dir/world: Y 2
+cat_1   1
+world_2   2
